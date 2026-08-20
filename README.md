@@ -1,4 +1,4 @@
-# Pugin
+# BluePrint
 
 <p align="center"><img src="assets/banner.png" alt="Pugin banner" width="420"></p>
 
