@@ -1,20 +1,15 @@
-# AI-Agents excerpts
+# Pugin
 
-Weekly research capture on AI agents (architectures, tooling, frameworks) for Anatoly's TELOS goal G0. Written by TooLi's scheduled cloud routine, synced locally by TooLi at the start of sessions or on request.
+## Personal Engineering Blueprint
 
-## File format
+Цифровой слепок инженерных и управленческих решений Анатолия — модель того, **как** и **почему** он принимает решения (архитектура, выбор стека, код-ревью, приоритизация, работа под нагрузкой), а не просто база фактов о нём. Наполняется и уточняется в реальном времени вместе с TooLi (его LifeOS DA).
 
-One file per finding, named `YYYY-MM-DD-<slug>.md`:
+→ **[`blueprint/`](blueprint/)** — модель принятия решений (`PERSONALITY_MODEL.yaml`), реальные кейсы, ментальные фильтры, инструкция для обучения агента.
 
-```markdown
----
-date: 2026-07-18
-topic: AI-Agents
-source: <URL>
-tags: [tag1, tag2]
+## Symbiotic Systems
+
+→ [`SYMBIOTIC-SYSTEMS.md`](SYMBIOTIC-SYSTEMS.md)
+
 ---
 
-# Title
-
-Summary — what it is, why it matters, key facts. Source link required.
-```
+Лицензия: [CC BY-SA 4.0](LICENSE).
