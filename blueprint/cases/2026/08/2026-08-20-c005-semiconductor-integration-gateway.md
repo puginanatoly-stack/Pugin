@@ -9,6 +9,8 @@ emotional_state:
 goals: []
 patterns: ["H001 (Закон Парето)", "H002 (Экспоненциальный порог сложности)", "P04 (Anti-Corruption Layer)"]
 captured_via: manual
+case_type: real
+status: complete
 ---
 
 # Ситуация (контекст)

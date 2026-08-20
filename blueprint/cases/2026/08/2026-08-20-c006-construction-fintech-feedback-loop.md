@@ -9,6 +9,8 @@ emotional_state:
 goals: []
 patterns: ["H010 (Накопление обратной связи в базе знаний)"]
 captured_via: manual
+case_type: real
+status: complete
 ---
 
 # Ситуация (контекст)

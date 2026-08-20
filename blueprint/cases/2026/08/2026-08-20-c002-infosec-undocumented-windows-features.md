@@ -9,6 +9,8 @@ emotional_state:
 goals: []
 patterns: ["H001 (Закон Парето)", "H005 (Тест на отторжение)", "H007 (Изучение недокументированных возможностей)"]
 captured_via: manual
+case_type: real
+status: complete
 ---
 
 # Ситуация (контекст)

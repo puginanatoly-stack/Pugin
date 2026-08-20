@@ -9,6 +9,8 @@ emotional_state:
 goals: []
 patterns: ["P12 (Zero-Downtime Deployments / Canary)", "H009 (Пилотная группа → лидеры-тренеры)"]
 captured_via: manual
+case_type: real
+status: complete
 ---
 
 # Ситуация (контекст)

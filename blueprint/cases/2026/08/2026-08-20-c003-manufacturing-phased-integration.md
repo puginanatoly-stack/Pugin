@@ -9,6 +9,8 @@ emotional_state:
 goals: []
 patterns: ["H002 (Экспоненциальный порог сложности)", "H003 (Опережающее проектирование)", "H004 (Итеративность)", "H008 (Автоматизация до измеримого предела)", "P04 (Anti-Corruption Layer)", "P10 (Waterfall — против)"]
 captured_via: manual
+case_type: real
+status: complete
 ---
 
 # Ситуация (контекст)

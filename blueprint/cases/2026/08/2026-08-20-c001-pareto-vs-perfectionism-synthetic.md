@@ -10,6 +10,7 @@ goals: []
 patterns: ["Закон Парето для решений (H001)", "Экспоненциальный порог сложности (H002)", "materialized view вместо самописного слоя агрегации"]
 captured_via: "Слепок!"
 case_type: synthetic_illustrative
+status: complete
 ---
 
 ## Важное примечание

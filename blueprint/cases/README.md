@@ -27,6 +27,8 @@ emotional_state: "Спокойствие"   # состояние на момен
 goals: []                        # опционально: связанные TELOS-цели G0-G3
 patterns: []                     # применённые принципы/паттерны проектирования
 captured_via: manual             # manual | "Слепок!"
+case_type: real                  # real | synthetic_illustrative — ЧТО это
+status: complete                 # complete | in-progress — ЗАВЕРШЁН ли кейс (отдельная ось от case_type)
 ---
 
 # Ситуация (контекст)

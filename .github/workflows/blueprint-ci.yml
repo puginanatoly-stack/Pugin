@@ -1,0 +1,40 @@
+name: Blueprint CI
+
+on:
+  push:
+    paths:
+      - "blueprint/**"
+      - ".github/workflows/blueprint-ci.yml"
+  pull_request:
+    paths:
+      - "blueprint/**"
+
+jobs:
+  build-test-freshness:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: blueprint
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r tools/requirements-dev.txt
+
+      - name: Run tests
+        run: python -m pytest tools/tests/ -v
+
+      - name: Build context (validates schema, fails loudly on structural drift)
+        run: python tools/build_context.py
+
+      - name: Build compact context
+        run: python tools/build_context.py --compact
+
+      - name: Fail if committed context.md/context.json are stale
+        run: |
+          git diff --exit-code -- context.md context.json context.compact.md || \
+            (echo "::error::context.md/context.json/context.compact.md are out of date — run 'python tools/build_context.py' and 'python tools/build_context.py --compact', then commit the result." && exit 1)

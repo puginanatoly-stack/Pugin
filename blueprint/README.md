@@ -2,6 +2,12 @@
 
 <p align="center"><img src="../assets/banner.png" alt="Personal Engineering Blueprint banner" width="360"></p>
 
+<p align="center">
+  <a href="../LICENSE"><img src="https://img.shields.io/badge/license-CC%20BY--SA%204.0-blue.svg" alt="License: CC BY-SA 4.0"></a>
+  <img src="https://img.shields.io/badge/python-3.12%2B-blue.svg" alt="Python 3.12+">
+  <a href="https://github.com/puginanatoly-stack/Pugin/actions/workflows/blueprint-ci.yml"><img src="https://github.com/puginanatoly-stack/Pugin/actions/workflows/blueprint-ci.yml/badge.svg" alt="Blueprint CI"></a>
+</p>
+
 **[Русский](#русский) | [中文](#中文) | [English](#english)**
 
 ---

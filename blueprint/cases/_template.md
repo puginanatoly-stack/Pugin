@@ -9,6 +9,8 @@ emotional_state:
 goals: []
 patterns: []   # применённые принципы/паттерны проектирования, напр. ["architecture-down", "dependency inversion", "Strategy pattern"]
 captured_via: manual   # manual | "Слепок!" (см. cases/README.md)
+case_type: real        # real | synthetic_illustrative — ЧТО это (реальное событие или синтетический пример)
+status: complete       # complete | in-progress — ЗАВЕРШЁН ли кейс (не путать с case_type — разные оси)
 ---
 
 # Ситуация (контекст)
