@@ -1,5 +1,7 @@
 # Personal Engineering Blueprint
 
+<p align="center"><img src="../assets/banner.png" alt="Personal Engineering Blueprint banner" width="360"></p>
+
 **[Русский](#русский) | [中文](#中文) | [English](#english)**
 
 ---

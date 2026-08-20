@@ -1,5 +1,7 @@
 # Pugin
 
+<p align="center"><img src="assets/banner.png" alt="Pugin banner" width="420"></p>
+
 **[Русский](#русский) | [中文](#中文) | [English](#english)**
 
 ---
