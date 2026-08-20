@@ -6,9 +6,6 @@
 
 → **[`blueprint/`](blueprint/)** — модель принятия решений (`PERSONALITY_MODEL.yaml`), реальные кейсы, ментальные фильтры, инструкция для обучения агента.
 
-## Symbiotic Systems
-
-→ [`SYMBIOTIC-SYSTEMS.md`](SYMBIOTIC-SYSTEMS.md)
 
 ---
 
