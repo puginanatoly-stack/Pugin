@@ -17,6 +17,8 @@
 3. [`lenses/`](lenses/) — **Слой 3.** Ментальные фильтры — вопросы, которые задаются себе перед решением определённого типа.
 4. [`GUIDE_FOR_FINE_TUNING.md`](GUIDE_FOR_FINE_TUNING.md) — **Слой 4.** Как исправлять агента, обученного на этом материале, и куда агент логирует свои сомнения ([`OPEN_QUESTIONS.md`](OPEN_QUESTIONS.md)).
 
+Плюс [`training_data/`](training_data/) (синтетический датасет для обучения) и [`tools/`](tools/) (context-loader и RAG-поиск). Что сделано и что дальше — [`ROADMAP.md`](ROADMAP.md).
+
 ### Статус
 
 Скелет создан 2026-08-20, наполняется в реальном времени. Кейсы и линзы пишутся только автором — вживую или под диктовку; AI-агент не сочиняет их содержание.
@@ -40,6 +42,8 @@
 3. [`lenses/`](lenses/) — **第 3 层。** 思维透镜——在做出某类决策之前会问自己的问题。
 4. [`GUIDE_FOR_FINE_TUNING.md`](GUIDE_FOR_FINE_TUNING.md) — **第 4 层。** 如何纠正基于此材料训练的智能体，以及智能体应把疑问记录在哪里（[`OPEN_QUESTIONS.md`](OPEN_QUESTIONS.md)）。
 
+此外还有 [`training_data/`](training_data/)（用于训练的合成数据集）和 [`tools/`](tools/)（上下文加载器与 RAG 检索）。已完成事项与后续计划见 [`ROADMAP.md`](ROADMAP.md)。
+
 ### 状态
 
 骨架创建于 2026-08-20，正在实时填充中。案例和思维透镜只能由作者本人撰写——亲自写或口述；AI 智能体不会替其编造内容。
@@ -62,6 +66,8 @@ This isn't documentation — it's practice in building and tuning AI agents.
 2. [`cases/`](cases/) — **Layer 2.** A collection of real "Decision → Reasoning" cases (a RAG knowledge base).
 3. [`lenses/`](lenses/) — **Layer 3.** Mental filters — questions asked of oneself before a certain type of decision.
 4. [`GUIDE_FOR_FINE_TUNING.md`](GUIDE_FOR_FINE_TUNING.md) — **Layer 4.** How to correct an agent trained on this material, and where the agent logs its doubts ([`OPEN_QUESTIONS.md`](OPEN_QUESTIONS.md)).
+
+Plus [`training_data/`](training_data/) (a synthetic training dataset) and [`tools/`](tools/) (context loader and RAG search). What's done and what's next — [`ROADMAP.md`](ROADMAP.md).
 
 ### Status
 
