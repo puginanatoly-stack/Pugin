@@ -104,3 +104,32 @@ def test_compact_markdown_excludes_cases():
     assert len(compact_md) < len(full_md)
     assert "## Cases" not in compact_md
     assert "## Cases" in full_md
+
+
+def test_contact_chunks_reach_json_but_never_markdown():
+    # contact/ content must stay discoverable via context.json/RAG but
+    # never leak into context.md or context.compact.md - "contact" is
+    # deliberately absent from TYPE_ORDER. This test exists so that if
+    # someone ever adds it there, CI catches the regression immediately.
+    contact_chunks = bc.chunks_from_contact()
+    if not contact_chunks:
+        return  # nothing under contact/ yet - nothing to protect
+    assert "contact" not in bc.TYPE_ORDER
+    assert "contact" not in bc.TYPE_HEADERS
+    assert "contact" not in bc.COMPACT_TYPES
+
+    personality = bc.load_personality()
+    chunks = (
+        bc.chunks_from_agent_guide()
+        + bc.chunks_from_personality(personality)
+        + bc.chunks_from_cases()
+        + bc.chunks_from_lenses()
+        + bc.chunks_from_training_pairs()
+        + contact_chunks
+    )
+    full_md = bc.build_markdown(chunks, compact=False)
+    compact_md = bc.build_markdown(chunks, compact=True)
+    for c in contact_chunks:
+        assert c["id"] not in full_md
+        assert c["id"] not in compact_md
+        assert c["status"] == "hidden"

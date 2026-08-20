@@ -1,6 +1,6 @@
 # Personal Engineering Blueprint — Context (compact)
 
-Digital blueprint of engineering and management decision-making. Not a fact database - a model of how and why decisions get made. Auto-generated from the blueprint source files (112 chunks).
+Digital blueprint of engineering and management decision-making. Not a fact database - a model of how and why decisions get made. Auto-generated from the blueprint source files (113 chunks).
 This is the --compact variant: values/heuristics/patterns/agent guide only, no case or training-pair bodies. Use context.json (or rag_query.py) to retrieve specific cases/pairs on demand.
 
 ## Agent Guide (Layer 4 — read this first)

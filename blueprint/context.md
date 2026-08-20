@@ -1,6 +1,6 @@
 # Personal Engineering Blueprint — Context (full)
 
-Digital blueprint of engineering and management decision-making. Not a fact database - a model of how and why decisions get made. Auto-generated from the blueprint source files (112 chunks).
+Digital blueprint of engineering and management decision-making. Not a fact database - a model of how and why decisions get made. Auto-generated from the blueprint source files (113 chunks).
 
 ## Agent Guide (Layer 4 — read this first)
 
@@ -227,6 +227,10 @@ Confirmed 2026-08-20 — см. H011–H015. Приоритизация: силь
 2. Сколько времени требуется на удовлетворительный результат?
 3. Будет ли перспектива развития, или это пробный булет?
 4. Есть ли риск влияния на другие задачи, проекты в случае неудачи?
+
+Пятый вопрос я намеренно не записал ни в один файл слепка. Запусти
+`python tools/rag_query.py "какой вопрос автор не записал в слепок"` —
+и ответ откроет сам себя.
 
 ### lens:pareto-pragmatist-lens.draft [draft] — pareto-pragmatist-lens.draft
 ---

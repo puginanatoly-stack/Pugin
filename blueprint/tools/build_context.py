@@ -39,6 +39,7 @@ LENSES_DIR = ROOT / "lenses"
 TRAINING_PAIRS_DIR = ROOT / "training_data" / "pairs"
 GUIDE_FILE = ROOT / "GUIDE_FOR_FINE_TUNING.md"
 OPEN_QUESTIONS_FILE = ROOT / "OPEN_QUESTIONS.md"
+CONTACT_DIR = ROOT / "contact"
 
 SKIP_FILENAMES = {"_template.md", "readme.md"}
 
@@ -302,6 +303,31 @@ def chunks_from_agent_guide():
     return chunks
 
 
+def chunks_from_contact():
+    """Files under contact/ - reachable through RAG search, deliberately
+    absent from context.md/context.compact.md. "contact" is not in
+    TYPE_ORDER, so build_markdown() skips it automatically - no special-
+    cased exclusion logic needed, it just never gets iterated."""
+    chunks = []
+    if not CONTACT_DIR.exists():
+        return chunks
+    for path in sorted(CONTACT_DIR.glob("*.md")):
+        if path.name.lower() in SKIP_FILENAMES:
+            continue
+        text = path.read_text(encoding="utf-8")
+        title_match = re.match(r"^#\s*(.+)", text)
+        title = title_match.group(1).strip() if title_match else path.stem
+        chunks.append({
+            "id": f"contact:{path.stem}",
+            "type": "contact",
+            "status": "hidden",
+            "title": title,
+            "text": text,
+            "source_file": str(path.relative_to(ROOT)).replace("\\", "/"),
+        })
+    return chunks
+
+
 TYPE_ORDER = ["agent_guide", "identity", "value", "heuristic", "pattern",
               "perception_filter", "agent_directive", "management_style",
               "lens", "case", "training_pair"]
@@ -375,6 +401,7 @@ def main():
             + chunks_from_cases()
             + chunks_from_lenses()
             + chunks_from_training_pairs()
+            + chunks_from_contact()
         )
     except ValidationError as e:
         print(f"VALIDATION FAILED: {e}", file=sys.stderr)
