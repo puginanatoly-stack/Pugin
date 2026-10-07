@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Карта памяти агента · ZCode</title>
+<style>
+  :root{
+    --bg:#0b0f1a; --bg2:#101728; --panel:#141d33; --panel2:#1a2440;
+    --line:#26355a; --text:#dce6f7; --dim:#8ea0c4; --faint:#5a6b8f;
+    --l1:#4da3ff; --l2:#7ee787; --l3:#ffb454; --l4:#56d4dd; --l5:#ff6b6b;
+    --mono:'Cascadia Mono',Consolas,'Courier New',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:radial-gradient(1200px 800px at 70% -10%, #16233f 0%, var(--bg) 55%);
+    color:var(--text); font-family:'Segoe UI',system-ui,sans-serif;
+    min-height:100vh; padding:28px clamp(16px,4vw,64px) 60px;
+  }
+  /* ---------- header ---------- */
+  header{margin-bottom:26px}
+  h1{
+    font-size:clamp(22px,3.2vw,34px); font-weight:700; letter-spacing:.5px;
+    background:linear-gradient(90deg,#8fd0ff,#b18cff 55%,#7ee787);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .sub{color:var(--dim); margin-top:6px; font-size:14px}
+  .status-strip{
+    display:flex; flex-wrap:wrap; gap:10px; margin-top:18px;
+    font-family:var(--mono); font-size:12.5px;
+  }
+  .chip{
+    display:flex; align-items:center; gap:8px; padding:7px 14px;
+    background:var(--panel); border:1px solid var(--line); border-radius:20px;
+    transition:.25s;
+  }
+  .chip:hover{border-color:var(--faint); transform:translateY(-1px)}
+  .dot{width:9px;height:9px;border-radius:50%;position:relative;flex:none}
+  .dot.on{background:var(--l2); box-shadow:0 0 8px var(--l2); animation:pulse 2.2s infinite}
+  .dot.off{background:var(--l5); box-shadow:0 0 8px var(--l5); animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+  .chip b{color:var(--text);font-weight:600}
+  .chip span{color:var(--dim)}
+  /* ---------- layers grid ---------- */
+  .layers{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
+    gap:14px; margin-top:8px;
+  }
+  .card{
+    background:linear-gradient(160deg,var(--panel),var(--bg2));
+    border:1px solid var(--line); border-radius:14px; padding:18px 16px;
+    cursor:pointer; position:relative; overflow:hidden;
+    transition:transform .22s, border-color .22s, box-shadow .22s;
+  }
+  .card:hover{transform:translateY(-3px)}
+  .card.sel{border-color:var(--acc); box-shadow:0 0 22px -6px var(--acc), inset 0 0 30px -22px var(--acc)}
+  .card.sel::after{
+    content:''; position:absolute; inset:0; border-radius:14px;
+    background:linear-gradient(180deg,var(--acc)0%,transparent 14%); opacity:.13; pointer-events:none;
+  }
+  .card .num{
+    font-family:var(--mono); font-size:11px; color:var(--acc);
+    letter-spacing:2px; text-transform:uppercase;
+  }
+  .card h2{font-size:16.5px; margin:6px 0 8px; font-weight:650}
+  .card p{font-size:12.5px; color:var(--dim); line-height:1.5; min-height:56px}
+  .badges{display:flex; flex-wrap:wrap; gap:6px; margin-top:12px}
+  .b{
+    font-family:var(--mono); font-size:10.5px; padding:3px 8px; border-radius:6px;
+    background:color-mix(in srgb, var(--acc) 14%, transparent);
+    color:var(--acc); border:1px solid color-mix(in srgb, var(--acc) 35%, transparent);
+  }
+  /* ---------- detail ---------- */
+  .detail{
+    margin-top:16px; background:linear-gradient(160deg,var(--panel2),var(--bg2));
+    border:1px solid var(--line); border-radius:16px; padding:24px clamp(16px,3vw,34px);
+    border-left:4px solid var(--acc);
+  }
+  .detail h3{font-size:20px; margin-bottom:4px}
+  .detail .role{color:var(--acc); font-size:13px; font-family:var(--mono); margin-bottom:16px}
+  .dgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px}
+  .dcol h4{
+    font-size:12px; text-transform:uppercase; letter-spacing:1.5px;
+    color:var(--faint); margin-bottom:9px; font-family:var(--mono);
+  }
+  .dcol ul{list-style:none}
+  .dcol li{
+    font-size:13.5px; color:var(--dim); padding:5px 0 5px 16px; position:relative; line-height:1.5;
+  }
+  .dcol li::before{content:'▸'; position:absolute; left:0; color:var(--acc); font-size:11px; top:7px}
+  .dcol code, .path{
+    font-family:var(--mono); font-size:12px; color:var(--text);
+    background:rgba(255,255,255,.06); padding:1px 6px; border-radius:5px; word-break:break-all;
+  }
+  .stat-row{display:flex; gap:12px; flex-wrap:wrap; margin-top:4px}
+  .stat{
+    background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:10px;
+    padding:10px 14px; min-width:96px;
+  }
+  .stat .v{font-family:var(--mono); font-size:21px; color:var(--acc); font-weight:700}
+  .stat .k{font-size:10.5px; color:var(--faint); text-transform:uppercase; letter-spacing:1px; margin-top:3px}
+  .warn{
+    margin-top:14px; padding:10px 14px; border-radius:10px; font-size:12.5px; line-height:1.55;
+    background:color-mix(in srgb,var(--l3) 10%, transparent);
+    border:1px solid color-mix(in srgb,var(--l3) 40%, transparent); color:#ffd9a0;
+  }
+  /* ---------- flow ---------- */
+  section.title{
+    margin:44px 0 16px; font-size:13px; font-family:var(--mono);
+    color:var(--faint); text-transform:uppercase; letter-spacing:3px;
+    display:flex; align-items:center; gap:14px;
+  }
+  section.title::after{content:''; flex:1; height:1px; background:var(--line)}
+  .flow{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; position:relative}
+  .step{
+    background:linear-gradient(160deg,var(--panel),var(--bg2));
+    border:1px solid var(--line); border-radius:14px; padding:16px; position:relative;
+  }
+  .step .n{
+    width:30px;height:30px;border-radius:50%; display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:14px; margin-bottom:10px;
+    background:color-mix(in srgb, var(--sc,#4da3ff) 18%, transparent);
+    color:var(--sc,#4da3ff); border:1px solid var(--sc,#4da3ff);
+    box-shadow:0 0 12px -3px var(--sc,#4da3ff);
+  }
+  .step h5{font-size:14px; margin-bottom:6px}
+  .step p{font-size:12.5px; color:var(--dim); line-height:1.55}
+  .step .tag{
+    display:inline-block; margin-top:9px; font-family:var(--mono); font-size:10px;
+    color:var(--sc,#4da3ff); border:1px dashed var(--sc,#4da3ff); border-radius:5px; padding:2px 7px;
+  }
+  /* animated packets between steps */
+  .flowline{position:absolute; top:44px; left:0; right:0; height:2px; z-index:0;
+    background:linear-gradient(90deg,var(--l1),var(--l2),var(--l3),var(--l4)); opacity:.25; border-radius:2px}
+  .packet{position:absolute; top:39px; width:12px; height:12px; border-radius:50%; z-index:1;
+    filter:blur(.4px)}
+  .p1{background:var(--l1); box-shadow:0 0 10px 2px var(--l1); animation:mv1 4.5s linear infinite}
+  .p2{background:var(--l2); box-shadow:0 0 10px 2px var(--l2); animation:mv1 4.5s linear infinite 1.5s}
+  .p3{background:var(--l3); box-shadow:0 0 10px 2px var(--l3); animation:mv1 4.5s linear infinite 3s}
+  @keyframes mv1{0%{left:2%; opacity:0}8%{opacity:1}92%{opacity:1}100%{left:97%; opacity:0}}
+  @media(max-width:760px){.flowline,.packet{display:none}}
+  /* ---------- infra ---------- */
+  .infra{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:14px}
+  .h{
+    background:linear-gradient(160deg,var(--panel),var(--bg2)); border:1px solid var(--line);
+    border-radius:12px; padding:15px 16px; transition:.22s;
+  }
+  .h:hover{border-color:var(--l4); box-shadow:0 0 16px -6px var(--l4)}
+  .h h6{font-family:var(--mono); font-size:12.5px; color:var(--l4); margin-bottom:6px}
+  .h p{font-size:12.5px; color:var(--dim); line-height:1.55}
+  .h .when{font-family:var(--mono); font-size:10px; color:var(--faint);
+    text-transform:uppercase; letter-spacing:1px; margin-top:8px; display:block}
+  footer{margin-top:44px; text-align:center; color:var(--faint); font-size:11.5px; font-family:var(--mono)}
+  .legend{display:flex; gap:18px; flex-wrap:wrap; margin-top:10px; font-size:11.5px; color:var(--dim)}
+  .legend i{font-style:normal; font-family:var(--mono); font-size:10px; padding:2px 7px; border-radius:4px; margin-right:5px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧠 Карта памяти агента</h1>
+  <div class="sub">ZCode (GLM) · снимок на 07.10.2026 · 5 слоёв + инфраструктура наблюдения · клик по карточке — подробности</div>
+  <div class="status-strip">
+    <div class="chip"><i class="dot on"></i><b>викинг</b><span>84мс</span></div>
+    <div class="chip"><i class="dot on"></i><b>memory-mcp</b><span>367 чанков</span></div>
+    <div class="chip"><i class="dot on"></i><b>файлы</b><span>69 · 07.10</span></div>
+    <div class="chip"><i class="dot on"></i><b>шаблоны-1С</b><span>44мс</span></div>
+    <div class="chip"><i class="dot off"></i><b>RAG-почта</b><span>сегмент/VPN</span></div>
+    <div class="chip"><i class="dot on"></i><b>MCP</b><span>12 серверов</span></div>
+  </div>
+  <div class="legend">
+    <span><i style="background:rgba(126,231,135,.15);color:var(--l2)">●</i>жив</span>
+    <span><i style="background:rgba(255,107,107,.15);color:var(--l5)">●</i>недоступен (штатно)</span>
+    <span><i style="background:rgba(255,255,255,.06);color:var(--dim)">клик</i>открыть слой</span>
+  </div>
+</header>
+
+<div class="layers" id="layers"></div>
+
+<div class="detail" id="detail"></div>
+
+<div class="title">// как это работает вместе</div>
+<div class="flow">
+  <div class="flowline"></div><div class="packet p1"></div><div class="packet p2"></div><div class="packet p3"></div>
+  <div class="step" style="--sc:var(--l1)">
+    <div class="n">1</div><h5>Старт сессии</h5>
+    <p>В контекст падает индекс <code style="font-family:var(--mono);font-size:11px">MEMORY.md</code> (слой 1 целиком) + хук <code style="font-family:var(--mono);font-size:11px">memory-status.mjs</code> пингует 5 слоёв и выдаёт строку 🟢/🔴 с таймингами.</p>
+    <span class="tag">SessionStart</span>
+  </div>
+  <div class="step" style="--sc:var(--l3)">
+    <div class="n">2</div><h5>Каждый промпт</h5>
+    <p>Хук <code style="font-family:var(--mono);font-size:11px">viking-recall.mjs</code> (запрос ≥40 симв.) ищет в базе опыта викинга и подмешивает топ-3. Панель <code style="font-family:var(--mono);font-size:11px">panel-status.mjs</code> показывает 📊-статус из кэша 3 мин — обновление уходит в фон, ввод не тормозит.</p>
+    <span class="tag">UserPromptSubmit</span>
+  </div>
+  <div class="step" style="--sc:var(--l4)">
+    <div class="n">3</div><h5>Работа</h5>
+    <p>Нетривиальная задача → <code style="font-family:var(--mono);font-size:11px">memory_search</code> (BM25+семантика) по канонной базе + поиск в викинге при необходимости. Всё из памяти — <b>гипотеза</b>, пока не подтверждено инструментами.</p>
+    <span class="tag">чтение</span>
+  </div>
+  <div class="step" style="--sc:var(--l2)">
+    <div class="n">4</div><h5>Запись — по слою назначения</h5>
+    <p>Личные наблюдения → автопамять. Проверенный факт → <code style="font-family:var(--mono);font-size:11px">memory_remember</code> с <code style="font-family:var(--mono);font-size:11px">checked=true</code>. Секреты → только DPAPI со ссылкой ⟨secret:id⟩. Опыт владельца → викинг.</p>
+    <span class="tag">запись</span>
+  </div>
+</div>
+
+<div class="title">// инфраструктура наблюдения</div>
+<div class="infra">
+  <div class="h">
+    <h6>memory-status.mjs</h6>
+    <p>Хук старта сессии: пинг всех 5 слоёв, строка 🟢/🔴 с таймингами каждого. Вывод только ASCII.</p>
+    <span class="when">SessionStart</span>
+  </div>
+  <div class="h">
+    <h6>panel-status.mjs</h6>
+    <p>Панель 📊 на каждом промпте: 5 слоёв + 12 MCP + апдейтер. Кэш 3 мин в <code style="font-family:var(--mono);font-size:11px">~/.zcode/tmp/panel-state.json</code>, протух → фоновое обновление детачем.</p>
+    <span class="when">UserPromptSubmit</span>
+  </div>
+  <div class="h">
+    <h6>viking-recall.mjs</h6>
+    <p>Инъекция топ-3 из базы опыта викинга на промпт ≥40 символов. Каналы викинга независимы: хук умеет отказывать <b>тихо</b> (401 при живом /mcp) — тогда искать руками.</p>
+    <span class="when">UserPromptSubmit</span>
+  </div>
+  <div class="h">
+    <h6>/memory-status</h6>
+    <p>Скилл-диагностика: расширенная таблица состояния всех слоёв, когда нужно копнуть в красный.</p>
+    <span class="when">по вызову</span>
+  </div>
+</div>
+
+<footer>Память-ZCode-структура.html · собрано агентом 07.10.2026 из живых источников (memory_status, хуки, дерево viking://)</footer>
+
+<script>
+const L = {
+  1:{acc:'var(--l1)', num:'Слой 01', name:'Автопамять ZCode', short:'Файловый «блокнот»: один файл = один факт, индекс MEMORY.md грузится в контекст на каждом старте.',
+    badges:['69 файлов','MEMORY.md','4 типа фактов','[[ссылки]]'],
+    role:'личная память ZCode · невидима коллеге DeepSeek',
+    stats:[['69','файлов'],['4','типа'],['∞','размер']],
+    cols:[
+      ['Что это',[
+        'Путь: <span class="path">%USERPROFILE%\\.zcode\\cli\\memories\\projects\\…\\memory\\</span>',
+        '69 файлов, <b>один файл = один факт</b>, YAML-frontmatter: name, description, type',
+        'Типы: <code>user</code> (кто ты), <code>feedback</code> (как работать), <code>project</code> (цели/ограничения), <code>reference</code> (внешние ресурсы)',
+        'Вики-ссылки <code>[[имя-файла]]</code> между фактами — можно ссылаться на ещё не написанное',
+      ]],
+      ['Как работает',[
+        '<b>MEMORY.md — индекс, одна строка на файл</b>. Именно он целиком в контексте с старта сессии',
+        'Релевантное из индекса → читаю файл через Read; новый факт → Write файла + строка в индекс',
+        'Правила: не дублировать (обновлять существующее), не хранить то, что уже в репо/гите',
+        'Воспоминание = «что было верно при записи»: файл/флаг проверять перед рекомендацией',
+      ]],
+    ]},
+  2:{acc:'var(--l2)', num:'Слой 02', name:'memory-mcp', short:'Канонная база знаний проекта: гибридный BM25+семантика поиск, флаги «проверено», DPAPI-секреты.',
+    badges:['367 чанков','dim 2560','qwen3-4b','GLM+DeepSeek'],
+    role:'командная память · общая для GLM и DeepSeek',
+    stats:[['367','чанков'],['89','проверено'],['2560','dim']],
+    cols:[
+      ['Что это',[
+        'Корень: <span class="path"><корень проекта></span> · индекс: <span class="path">tools\\memory-mcp\\memory.index.db</span>',
+        'Канонные файлы: <code>memory.md</code> 124 · <code>TOOLI-MEMORY.md</code> 197 · <code>ERR</code> 36 · <code>USER-RULES.md</code> 8 · <code>LLM-RULES.md</code> 2',
+        'Эмбеддинги: <b>qwen3-embedding-4b</b> через litellm · последняя индексация 05.10',
+        'Грабля-история: 30.09 индексация падала — No space left on device на /app/chroma_db VM',
+      ]],
+      ['Чтение / запись',[
+        '<code>memory_search</code> — гибрид BM25 + семантика, выдаёт <code>&lt;файл&gt;:L&lt;строка&gt;</code>. Правило: в начале нетривиальной задачи — искать здесь, не грепать',
+        '<code>memory_remember</code> — формат ⟨создано · проверено · источник⟩ + переиндексация',
+        '<code>checked=true</code> — ТОЛЬКО если факт проверен на реальном поведении (правило ERR-15), иначе помечается как рассуждение',
+        '<b>Секреты</b>: DPAPI-хранилище <code>secrets.dpapi.json</code>; чтение значения в контекст запрещено; рабочий путь — <code>secret_use</code> с локальной подстановкой <code>{{secret}}</code>; в памяти только ⟨secret:id⟩',
+      ]],
+    ]},
+  3:{acc:'var(--l3)', num:'Слой 03', name:'OpenViking — викинг', short:'Контекстная БД: опыт владельца, вики, ресурсы. Три независимых канала доступа.',
+    badges:['<LAN-IP>:1933','volcengine','3 канала','User Key'],
+    role:'долгосрочный опыт и вики · сервис на VM MCP1C (рабочая станция)',
+    stats:[['3','канала'],['12+','файлов опыта'],['40','симв. порог хука']],
+    cols:[
+      ['Что это',[
+        'Живой инстанс <span class="path">http://<LAN-IP>:1933</span>, volcengine context DB',
+        'Дерево: <code>viking://agent/</code> (skills, tools) · <code>viking://resources/</code> (experience, lifeos) · <code>viking://user/mcp/memories/entities/</code> — опыт владельца',
+        'Доменные разборы живут в <code>experience/knowledge/</code>',
+        'Авторизация: root-ключ только для /admin, агентам — User Key',
+      ]],
+      ['Каналы доступа (независимы!)',[
+        '1. Хук <code>viking-recall.mjs</code>: промпт ≥40 симв. → топ-3 в контекст автоматически',
+        '2. MCP-инструменты <code>openviking</code>: search / find / read / write / remember',
+        '3. REST API — для скриптов вне агента',
+        '<b>Грабля</b>: хук отказывает тихо (рецидив 06.10: REST 401 «Invalid API Key» при живом /mcp, health-панель без auth врёт 🟢) — если хук молчит, искать руками в начале задачи',
+      ]],
+    ]},
+  4:{acc:'var(--l4)', num:'Слой 04', name:'Шаблоны-1С', short:'Предметная память: библиотека 1С-шаблонов кода + векторные заметки «как решали похожую задачу».',
+    badges:['44мс','onec-templates','remember/recall'],
+    role:'предметная память по 1С · пишет в основном субагент/воркфлоу',
+    stats:[['2','хранилища'],['44','мс отклик']],
+    cols:[
+      ['Шаблоны кода',[
+        '<code>templatesearch</code> — поиск по описанию/вопросу',
+        '<code>get_template</code> / <code>list_templates</code> — достать готовый 1С-код',
+        '<code>add_template</code> — пополнить библиотеку',
+      ]],
+      ['Заметки-воспоминания',[
+        '<code>remember</code> — сохранить наблюдение/решение',
+        '<code>recall</code> — векторный поиск по заметкам проекта',
+        'Отдельная индексация от memory-mcp · статус 🟢',
+      ]],
+    ]},
+  5:{acc:'var(--l5)', num:'Слой 05', name:'RAG-почта', short:'Корпоративная база знаний ЗУП через Open WebUI. Красный — штатно: сегмент/VPN.',
+    badges:['Open WebUI','2 коллекции','🔴 штатно'],
+    role:'регламентированные знания работодателя по ЗУП',
+    stats:[['2','коллекции'],['●','красный = норм']],
+    cols:[
+      ['Что это',[
+        'Open WebUI <span class="path"><corporate-openwebui-host></span>',
+        'Коллекции «1C ZUP RAG» — их <b>две</b>, уточнять какую использовать',
+        'Ключ хранится в <span class="path"><хранилище секретов></span>',
+      ]],
+      ['Статус',[
+        '🔴 недоступен из текущей сети — <b>штатно</b> (сегмент/VPN)',
+        'Когда жив: поиск по корпоративной базе знаний 1С:ЗУП',
+      ]],
+    ]},
+};
+
+const layersEl = document.getElementById('layers');
+const detailEl = document.getElementById('detail');
+let sel = 1;
+
+function renderCards(){
+  layersEl.innerHTML = '';
+  for(const [id,l] of Object.entries(L)){
+    const c = document.createElement('div');
+    c.className = 'card' + (+id===sel?' sel':'');
+    c.style.setProperty('--acc', l.acc);
+    c.innerHTML = `<div class="num">${l.num}</div><h2>${l.name}</h2><p>${l.short}</p>
+      <div class="badges">${l.badges.map(b=>`<span class="b">${b}</span>`).join('')}</div>`;
+    c.onclick = ()=>{ sel=+id; renderCards(); renderDetail(); };
+    layersEl.appendChild(c);
+  }
+}
+function renderDetail(){
+  const l = L[sel];
+  detailEl.style.setProperty('--acc', l.acc);
+  detailEl.style.borderLeftColor = l.acc;
+  detailEl.innerHTML = `
+    <h3>${l.num.slice(-2)}. ${l.name}</h3>
+    <div class="role">${l.role}</div>
+    <div class="stat-row">${l.stats.map(([v,k])=>`<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`).join('')}</div>
+    <br>
+    <div class="dgrid">${l.cols.map(([h,items])=>`
+      <div class="dcol"><h4>${h}</h4><ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`).join('')}
+    </div>`;
+}
+renderCards(); renderDetail();
+</script>
+</body>
+</html>

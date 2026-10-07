@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Память агента 2027</title>
+<style>
+:root{
+  --bg:#f5f6f8;--panel:#fff;--ink:#1a1e24;--muted:#5e6a79;--line:#dce1e7;--grid:#eceff3;
+  --accent:#2563eb;--accent-soft:#e3ebff;
+  --bad:#c2410c;--bad-soft:#ffedd5;--crit:#b91c1c;--crit-soft:#fee2e2;--ok:#15803d;--ok-soft:#dcfce7;--warn:#a16207;--warn-soft:#fef9c3;
+  --s1:#2563eb;--s2:#c2410c;--s3:#7c3aed;--s4:#0d9488;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1217;--panel:#161b22;--ink:#e6eaf0;--muted:#94a0b0;--line:#29313c;--grid:#1f262f;
+  --accent:#60a5fa;--accent-soft:#1c2a42;
+  --bad:#fb923c;--bad-soft:#3a2312;--crit:#f87171;--crit-soft:#3b1616;--ok:#4ade80;--ok-soft:#12301d;--warn:#facc15;--warn-soft:#332b0c;
+  --s1:#60a5fa;--s2:#fb923c;--s3:#a78bfa;--s4:#2dd4bf;
+}}
+:root[data-theme="dark"]{
+  --bg:#0e1217;--panel:#161b22;--ink:#e6eaf0;--muted:#94a0b0;--line:#29313c;--grid:#1f262f;
+  --accent:#60a5fa;--accent-soft:#1c2a42;
+  --bad:#fb923c;--bad-soft:#3a2312;--crit:#f87171;--crit-soft:#3b1616;--ok:#4ade80;--ok-soft:#12301d;--warn:#facc15;--warn-soft:#332b0c;
+  --s1:#60a5fa;--s2:#fb923c;--s3:#a78bfa;--s4:#2dd4bf;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:8px}
+h1{margin:0;font-size:24px}
+h2{margin:0 0 4px;font-size:18px}
+.sub{color:var(--muted);font-size:13px}
+.lead{font-size:16px;margin:14px 0 20px;max-width:760px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px}
+.verdict{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px}
+.vbox{border-radius:12px;padding:14px 16px;border:1px solid var(--line);background:var(--panel)}
+.vbox .big{font-size:28px;font-weight:700;line-height:1.1;margin:4px 0}
+.vbox.crit{background:var(--crit-soft);border-color:transparent}.vbox.crit .big{color:var(--crit)}
+.vbox.ok{background:var(--ok-soft);border-color:transparent}.vbox.ok .big{color:var(--ok)}
+.vbox.warn{background:var(--warn-soft);border-color:transparent}.vbox.warn .big{color:var(--warn)}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;margin:10px 0 6px}
+.ctl{display:flex;flex-direction:column;min-width:180px;flex:1}
+.ctl label{font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
+.ctl label b{color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.toggle{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.toggle button{background:var(--panel);color:var(--muted);border:0;padding:7px 14px;font:inherit;font-size:14px;cursor:pointer}
+.toggle button.on{background:var(--accent);color:#fff}
+.chart{width:100%;height:auto;display:block;touch-action:none}
+.chart text{fill:var(--muted);font-size:11px;font-family:system-ui,sans-serif}
+.chart .gl{stroke:var(--grid)}
+.chart .ax{stroke:var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;margin-top:6px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:16px;height:3px;border-radius:2px;display:inline-block}
+.tip{position:fixed;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.15);opacity:0;transition:opacity .1s;z-index:10;max-width:260px}
+.tip b{display:block;margin-bottom:3px;color:var(--ink)}
+.tip .r{display:flex;justify-content:space-between;gap:12px}
+.readout{margin-top:10px;padding:10px 14px;border-radius:8px;background:var(--accent-soft);font-size:14px}
+.readout.bad{background:var(--crit-soft)}.readout.good{background:var(--ok-soft)}
+.timeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.tl{border-left:4px solid var(--line);padding:6px 12px}
+.tl h3{margin:0;font-size:14px}.tl p{margin:4px 0 0;font-size:13px}
+.tl.l1{border-color:var(--ok)}.tl.l2{border-color:var(--warn)}.tl.l3{border-color:var(--bad)}.tl.l4{border-color:var(--crit)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+td.chk{width:34px}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--ok);cursor:pointer}
+tr.done td:not(.chk){opacity:.5;text-decoration:line-through}
+.pill{display:inline-block;font-size:11px;font-weight:600;border-radius:99px;padding:1px 8px;white-space:nowrap}
+.p-now{background:var(--crit-soft);color:var(--crit)}.p-week{background:var(--warn-soft);color:var(--warn)}.p-month{background:var(--accent-soft);color:var(--accent)}
+.progress{height:10px;background:var(--grid);border-radius:99px;overflow:hidden;margin:6px 0 2px}
+.progress div{height:100%;background:var(--ok);transition:width .3s}
+.tablewrap{overflow-x:auto}
+.themebtn{background:none;border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:5px 10px;cursor:pointer;font:inherit;font-size:13px}
+.note{font-size:12px;color:var(--muted);margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1>Память агента ZCode/GLM: прогноз до октября 2027</h1>
+    <div class="sub">Расчёт TooLi от 07.10.2026 по замерам агента · модель: РАСЧЁТ-модель-роста-памяти-TooLi.md</div>
+  </div>
+  <button class="themebtn" id="themeBtn">◐ Тема</button>
+</header>
+
+<p class="lead">Память не рухнет от переполнения диска. Она утонет в собственном индексе, начнёт уверенно врать устаревшими фактами и подмешивать мусор из поиска. Ниже — что будет, если ничего не делать, и что меняет каждое действие. Все графики живые: двигай ползунки.</p>
+
+<div class="verdict">
+  <div class="vbox crit"><div class="sub">Индекс без мер, апрель 2027</div><div class="big" id="vIdx">46%</div><div class="sub">окна контекста съедено памятью</div></div>
+  <div class="vbox crit"><div class="sub">Факты о состояниях без TTL, через год</div><div class="big" id="vStale">82%</div><div class="sub">неверны, но выглядят авторитетно</div></div>
+  <div class="vbox warn"><div class="sub">Порог Викинга сейчас 0,6</div><div class="big">ниже шума</div><div class="sub">мусор проходит почти на каждый промпт</div></div>
+  <div class="vbox ok"><div class="sub">С мерами</div><div class="big">≤ 7,5%</div><div class="sub">индекс держится на бюджете 15k всегда</div></div>
+</div>
+
+<!-- 1 INDEX -->
+<div class="card">
+  <h2>1. Рост индекса MEMORY.md</h2>
+  <div class="sub">Индекс грузится целиком в каждый сеанс. Доля окна 200k, которую он съедает.</div>
+  <div class="controls">
+    <div class="ctl"><label>Темп, файлов в неделю <b id="rOut"></b></label><input type="range" id="rIn" min="5" max="40" step="0.5" value="20"></div>
+    <div class="ctl"><label>Насыщение b (1 = нет, 0,5 = сильное) <b id="bOut"></b></label><input type="range" id="bIn" min="0.4" max="1" step="0.05" value="0.7"></div>
+    <div class="ctl"><label>Токенов индекса на файл <b id="dOut"></b></label><input type="range" id="dIn" min="60" max="300" step="5" value="159"></div>
+  </div>
+  <svg class="chart" id="cIdx" viewBox="0 0 760 330"></svg>
+  <div class="legend" id="lIdx"></div>
+  <div class="readout bad" id="roIdx"></div>
+</div>
+
+<!-- 2 STALE -->
+<div class="card">
+  <h2>2. Протухание фактов о состояниях</h2>
+  <div class="sub">Серверы, CI, доступы, режимы джоб. Доля неверных среди тех, которым агент доверяет.</div>
+  <div class="controls">
+    <div class="ctl"><label>Полураспад факта, дней <b id="hOut"></b></label><input type="range" id="hIn" min="15" max="120" step="5" value="45"></div>
+    <div class="ctl"><label>TTL перепроверки, дней <b id="tOut"></b></label><input type="range" id="tIn" min="15" max="120" step="5" value="45"></div>
+  </div>
+  <svg class="chart" id="cStale" viewBox="0 0 760 300"></svg>
+  <div class="legend" id="lStale"></div>
+  <div class="readout" id="roStale"></div>
+</div>
+
+<!-- 3 NOISE -->
+<div class="card">
+  <h2>3. Шум поиска Викинга</h2>
+  <div class="sub">Лучший скор среди нерелевантных чанков растёт с размером корпуса как μ + σ·√(2 ln N). Всё выше этой кривой и ниже порога — мусор в контексте.</div>
+  <div class="controls">
+    <div class="ctl"><label>Порог min_score хука <b id="thOut"></b></label><input type="range" id="thIn" min="0.5" max="0.95" step="0.01" value="0.6"></div>
+  </div>
+  <svg class="chart" id="cNoise" viewBox="0 0 760 300"></svg>
+  <div class="legend" id="lNoise"></div>
+  <div class="readout" id="roNoise"></div>
+  <div class="note">μ = 0,45, σ = 0,08 — оценка для bge-m3, подтверждена одним наблюдением (ложное попадание 0,74 при 367 чанках). Откалибруй на 100 реальных парах.</div>
+</div>
+
+<!-- 4 BREAKEVEN -->
+<div class="card">
+  <h2>4. Калькулятор: окупается ли строка индекса</h2>
+  <div class="sub">N = экономия одного попадания ÷ (токены строки × сеансов в день). Строку надо использовать хотя бы раз в N дней.</div>
+  <div class="controls">
+    <div class="ctl"><label>Токенов в строке <b id="LOut"></b></label><input type="range" id="LIn" min="30" max="400" step="10" value="130"></div>
+    <div class="ctl"><label>Экономия одного попадания, токенов <b id="SOut"></b></label><input type="range" id="SIn" min="1000" max="40000" step="1000" value="10000"></div>
+    <div class="ctl"><label>Сеансов в день <b id="sOut"></b></label><input type="range" id="sIn" min="1" max="30" step="1" value="10"></div>
+  </div>
+  <div class="readout" id="roBE"></div>
+</div>
+
+<!-- 5 TIMELINE -->
+<div class="card">
+  <h2>5. Что будет, если ничего не делать</h2>
+  <div class="sub">Базовый сценарий: темп 20 файлов в неделю, плотность растёт, TTL нет, порог 0,6.</div>
+  <div class="timeline" style="margin-top:12px">
+    <div class="tl l1"><h3>Октябрь 2026</h3><p>Индекс ~5% окна. Всё работает. Первые дубли и строки-простыни уже есть.</p></div>
+    <div class="tl l2"><h3>Январь 2027</h3><p>Индекс ~25%. Компакция чаще. Агент хуже держит контекст задачи. Около половины фактов о серверах старше полураспада.</p></div>
+    <div class="tl l3"><h3>Апрель 2027</h3><p>Индекс ~46%. Память мешает работе, ради которой существует. Каждый второй факт о состояниях неверен.</p></div>
+    <div class="tl l4"><h3>Октябрь 2027</h3><p>Индекс ~88% или переполнение. 4 из 5 volatile-фактов ложны. Доверять памяти нельзя, проверять всё — дороже, чем не иметь её.</p></div>
+  </div>
+</div>
+
+<!-- 6 PLAN -->
+<div class="card">
+  <h2>6. Что делать: план по приоритету</h2>
+  <div class="sub">Отмечай выполненное — прогресс сохраняется в этом браузере.</div>
+  <div class="progress"><div id="prog" style="width:0"></div></div>
+  <div class="sub" id="progTxt"></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th></th><th>Действие</th><th>Срок</th><th>Если не сделать</th></tr></thead>
+    <tbody id="plan"></tbody>
+  </table></div>
+</div>
+
+<p class="note">Сунь-цзы: побеждает тот, кто считает до битвы. Допущения модели и способы их проверки — в разделе 7 файла РАСЧЁТ-модель-роста-памяти-TooLi.md.</p>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const W=200000,F0=69,T0=2.5,START=new Date(2026,9,7);
+const fmtWeek=w=>{const d=new Date(START.getTime()+w*7*864e5);return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'})};
+const pct=x=>(x*100).toFixed(0)+'%';
+
+/* theme */
+$('#themeBtn').onclick=()=>{const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;r.dataset.theme=dark?'light':'dark';try{localStorage.setItem('mem-theme',r.dataset.theme)}catch(e){}renderAll()};
+try{const t=localStorage.getItem('mem-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}
+
+/* generic line chart */
+function chart(svg,o){
+  const VW=+svg.getAttribute('viewBox').split(' ')[2],VH=+svg.getAttribute('viewBox').split(' ')[3];
+  const m={l:48,r:14,t:12,b:34},pw=VW-m.l-m.r,ph=VH-m.t-m.b;
+  const X=x=>m.l+(x-o.x0)/(o.x1-o.x0)*pw, Y=y=>m.t+ph-(Math.min(Math.max(y,o.y0),o.y1)-o.y0)/(o.y1-o.y0)*ph;
+  let h='';
+  o.yt.forEach(v=>{h+=`<line class="gl" x1="${m.l}" x2="${m.l+pw}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${m.l-6}" y="${Y(v)+4}" text-anchor="end">${o.yf(v)}</text>`});
+  o.xt.forEach(v=>{h+=`<text x="${X(v)}" y="${VH-12}" text-anchor="middle">${o.xf(v)}</text>`});
+  h+=`<line class="ax" x1="${m.l}" x2="${m.l+pw}" y1="${m.t+ph}" y2="${m.t+ph}"/>`;
+  (o.bands||[]).forEach(b=>{h+=`<rect x="${m.l}" width="${pw}" y="${Y(b.y1)}" height="${Y(b.y0)-Y(b.y1)}" fill="${b.c}" opacity=".10"/>`});
+  (o.areas||[]).forEach(a=>{let p='';for(let i=0;i<=200;i++){const x=o.x0+(o.x1-o.x0)*i/200;p+=(i?'L':'M')+X(x)+','+Y(a.top(x))}for(let i=200;i>=0;i--){const x=o.x0+(o.x1-o.x0)*i/200;p+='L'+X(x)+','+Y(a.bot(x))}h+=`<path d="${p}Z" fill="${a.c}" opacity=".18"/>`});
+  (o.hl||[]).forEach(l=>{h+=`<line x1="${m.l}" x2="${m.l+pw}" y1="${Y(l.y)}" y2="${Y(l.y)}" stroke="${l.c}" stroke-dasharray="5 4" stroke-width="1.5"/><text x="${m.l+pw-4}" y="${Y(l.y)-5}" text-anchor="end" style="fill:${l.c};font-weight:600">${l.t}</text>`});
+  o.s.forEach(s=>{let p='';for(let i=0;i<=240;i++){const x=o.x0+(o.x1-o.x0)*i/240;p+=(i?'L':'M')+X(x).toFixed(1)+','+Y(s.f(x)).toFixed(1)}h+=`<path d="${p}" fill="none" stroke="${s.c}" stroke-width="${s.w||2.5}" ${s.d?`stroke-dasharray="${s.d}"`:''}/>`});
+  (o.pts||[]).forEach(pt=>{h+=`<circle cx="${X(pt.x)}" cy="${Y(pt.y)}" r="5" fill="${pt.c}"/><text x="${X(pt.x)+8}" y="${Y(pt.y)-8}" style="fill:${pt.c};font-weight:600">${pt.t}</text>`});
+  h+=`<line id="${svg.id}-cur" y1="${m.t}" y2="${m.t+ph}" stroke="${css('--muted')}" stroke-width="1" opacity="0"/>`;
+  h+=`<rect x="${m.l}" y="${m.t}" width="${pw}" height="${ph}" fill="transparent" class="hit"/>`;
+  svg.innerHTML=h;
+  const cur=svg.querySelector(`#${svg.id}-cur`),tip=$('#tip');
+  const move=e=>{const r=svg.getBoundingClientRect(),cx=(e.touches?e.touches[0].clientX:e.clientX),cy=(e.touches?e.touches[0].clientY:e.clientY);
+    const vx=(cx-r.left)/r.width*VW;const x=o.x0+(vx-m.l)/pw*(o.x1-o.x0);if(x<o.x0||x>o.x1){out();return}
+    cur.setAttribute('x1',X(x));cur.setAttribute('x2',X(x));cur.setAttribute('opacity',.6);
+    tip.innerHTML=`<b>${o.tipX(x)}</b>`+o.s.filter(s=>s.n).map(s=>`<div class="r"><span style="color:${s.c}">● ${s.n}</span><span>${o.yt2?o.yt2(s.f(x)):o.yf(s.f(x))}</span></div>`).join('');
+    tip.style.opacity=1;tip.style.left=Math.min(cx+14,innerWidth-270)+'px';tip.style.top=(cy+14)+'px'};
+  const out=()=>{cur.setAttribute('opacity',0);tip.style.opacity=0};
+  const hit=svg.querySelector('.hit');hit.onmousemove=move;hit.onmouseleave=out;hit.ontouchmove=move;hit.ontouchend=out;
+}
+const legend=(el,items)=>{el.innerHTML=items.map(i=>`<span><i style="background:${i.c}${i.d?';background:repeating-linear-gradient(90deg,'+i.c+' 0 5px,transparent 5px 8px)':''}"></i>${i.n}</span>`).join('')};
+
+/* 1 index */
+function renderIdx(){
+  const r=+$('#rIn').value,b=+$('#bIn').value,d=+$('#dIn').value;
+  $('#rOut').textContent=r;$('#bOut').textContent=b.toFixed(2);$('#dOut').textContent=d;
+  const lin=t=>(F0+r*t)*d/W, pw=t=>(F0/Math.pow(T0,b))*Math.pow(T0+t,b)*d/W, cap=t=>Math.min(lin(t),15000/W);
+  const s=[
+    {n:'Ничего не делать (линейно)',f:lin,c:css('--s2')},
+    {n:'Ничего не делать (с насыщением b)',f:pw,c:css('--s3'),d:'6 4'},
+    {n:'С бюджетом индекса 15k',f:cap,c:css('--ok'),w:3.5}
+  ];
+  chart($('#cIdx'),{x0:0,x1:52,y0:0,y1:1.2,yt:[0,.25,.5,.75,1],yf:pct,xt:[0,12.5,25.5,38.5,51.5],xf:w=>['10.2026','01.2027','04.2027','07.2027','10.2027'][[0,12.5,25.5,38.5,51.5].indexOf(w)],
+    tipX:w=>'Неделя '+w.toFixed(0)+' · '+fmtWeek(w),yt2:v=>pct(v)+' · '+(v*W/1000).toFixed(0)+'k ток.',
+    bands:[{y0:.25,y1:.4,c:css('--warn')},{y0:.4,y1:1.2,c:css('--crit')}],
+    hl:[{y:1,t:'окно переполнено',c:css('--crit')},{y:.25,t:'25% — память мешает работе',c:css('--warn')}],s});
+  legend($('#lIdx'),s);
+  const wk=f=>{for(let t=0;t<=520;t+=.5)if(f(t)>=.25)return t;return null};
+  const w1=wk(lin),w2=wk(pw);
+  $('#roIdx').innerHTML=`<b>Порог 25% окна</b> без мер: линейно — ${w1!=null?'неделя '+w1.toFixed(0)+' ('+fmtWeek(w1)+')':'не наступает'}; с насыщением — ${w2!=null?'неделя '+w2.toFixed(0)+' ('+fmtWeek(w2)+')':'позже 10 лет'}. С бюджетом 15k — <b>никогда</b>: индекс стоит на ${pct(15000/W)} при любом объёме истории.`;
+  $('#vIdx').textContent=pct(lin(25.5));
+}
+
+/* 2 stale */
+function V(T,h){return T<=0?1:(h/(T*Math.LN2))*(1-Math.pow(2,-T/h))}
+function renderStale(){
+  const h=+$('#hIn').value,ttl=+$('#tIn').value;$('#hOut').textContent=h;$('#tOut').textContent=ttl;
+  const no=T=>1-V(T,h), withT=T=>T<=ttl?no(T):1-V(ttl,h);
+  const s=[{n:'Без TTL',f:no,c:css('--crit')},{n:`С TTL ${ttl} дн.`,f:withT,c:css('--ok'),w:3.5}];
+  chart($('#cStale'),{x0:0,x1:365,y0:0,y1:1,yt:[0,.25,.5,.75,1],yf:pct,xt:[0,90,180,270,365],xf:v=>v+' дн.',tipX:v=>'День '+v.toFixed(0),
+    areas:[{top:no,bot:withT,c:css('--crit')}],s});
+  legend($('#lStale'),s);
+  $('#roStale').innerHTML=`Через год без TTL неверны <b>${pct(no(365))}</b> фактов о состояниях. С TTL ${ttl} дн. доля неверных среди доверенных держится на <b>${pct(1-V(ttl,h))}</b> — остальное помечено «было верно на дату» и перепроверяется. Закрашенная область — ложь, которую убирает TTL.`;
+  $('#vStale').textContent=pct(1-V(365,45));
+}
+
+/* 3 noise */
+const MU=.45,SG=.08,noise=N=>MU+SG*Math.sqrt(2*Math.log(N));
+function renderNoise(){
+  const th=+$('#thIn').value;$('#thOut').textContent=th.toFixed(2);
+  const f=lx=>noise(Math.pow(10,lx));
+  const s=[{n:'Лучший скор мусора',f,c:css('--crit')},{n:'Твой порог',f:()=>th,c:css('--accent'),d:'6 4'}];
+  chart($('#cNoise'),{x0:2,x1:4.6,y0:.55,y1:.9,yt:[.6,.65,.7,.75,.8,.85,.9],yf:v=>v.toFixed(2),xt:[2,2.5,3,3.5,4,4.5],xf:v=>Math.round(Math.pow(10,v)).toLocaleString('ru-RU'),
+    tipX:v=>Math.round(Math.pow(10,v)).toLocaleString('ru-RU')+' чанков',yt2:v=>v.toFixed(3),
+    areas:[{top:f,bot:x=>Math.min(th,f(x)),c:css('--crit')}],
+    hl:[{y:.6,t:'сейчас 0,60',c:css('--crit')},{y:.8,t:'рекомендовано 0,80',c:css('--ok')}],
+    pts:[{x:Math.log10(367),y:.74,c:css('--bad'),t:'наблюдено 0,74'}],s});
+  legend($('#lNoise'),s);
+  const Nmax=Math.exp(Math.pow((th-MU)/SG,2)/2),ro=$('#roNoise');
+  if(th<=noise(367)){ro.className='readout bad';ro.innerHTML=`Порог ${th.toFixed(2)} <b>уже ниже шума</b> на текущих 367 чанках. Мусор проходит. Порог держит корпус только до ~${Math.max(1,Math.round(Nmax)).toLocaleString('ru-RU')} чанков.`}
+  else{ro.className='readout good';ro.innerHTML=`Порог ${th.toFixed(2)} отсекает мусор, пока корпус меньше ~<b>${Math.round(Nmax).toLocaleString('ru-RU')}</b> чанков (сейчас 367, запас ×${(Nmax/367).toFixed(0)}). Потом — перекалибровать.`}
+}
+
+/* 4 breakeven */
+function renderBE(){
+  const L=+$('#LIn').value,S=+$('#SIn').value,s=+$('#sIn').value;
+  $('#LOut').textContent=L;$('#SOut').textContent=S.toLocaleString('ru-RU');$('#sOut').textContent=s;
+  const N=S/(L*s),el=$('#roBE');
+  el.className='readout '+(N<30?'bad':'good');
+  el.innerHTML=`Строка стоит <b>${(L*s).toLocaleString('ru-RU')}</b> токенов в день. Окупается, если её используют хотя бы <b>раз в ${N.toFixed(1)} дн.</b> `+(N<30?`Правило «30 дней без использования → архив» здесь мягче точки безубыточности: такая строка в индексе дороже, чем польза от неё, если ею не пользуются еженедельно.`:`Запас большой: правило «30 дней без использования → архив» её не заденет, пока она хоть изредка нужна.`);
+}
+
+/* 6 plan */
+const PLAN=[
+  ['Поднять порог хука Викинга до 0,80','now','Мусор в топ-3 на почти каждый промпт. Агент тратит внимание и токены на нерелевантное.'],
+  ['Правило отказа: разрыв топ-1 и топ-3 < 0,03 → ничего не подмешивать','now','Когда ответа в базе нет (вопрос про SSH), хук всё равно вкидывает три чужих документа.'],
+  ['Дедуп и ужатие строк индекса до ≤200 символов','week','Индекс толстеет быстрее, чем растёт число файлов. Все сценарии графика 1 становятся хуже.'],
+  ['Бюджет индекса 15k токенов, вытеснение самой холодной строки','week','Индекс растёт без предела. Апрель 2027 — около половины окна.'],
+  ['Логировать чтения файлов по строкам индекса','week','Правило архивации работать не сможет. Резать придётся вслепую.'],
+  ['TTL 45 дней + поле verified для volatile-фактов','week','Через год 4 из 5 фактов о серверах и CI — уверенная ложь.'],
+  ['Калибровка порога на 50 реальных промптах (точность ≥ 80%)','month','Порог 0,80 — оценка модели. Без калибровки он может оказаться слишком строгим или слабым.'],
+  ['Еженедельный замер числа файлов, перезапуск модели через 4 недели','month','Непонятно, какой сценарий реален. Решения принимаются по худшему или по угаданному.'],
+  ['Архив: строка без использования 30 дней уходит из индекса в поиск','month','Индекс хранит записи, которые никто не читает, и платит за них каждый сеанс.']
+];
+const PL={now:['сегодня','p-now'],week:['эта неделя','p-week'],month:['этот месяц','p-month']};
+let done={};try{done=JSON.parse(localStorage.getItem('mem-plan')||'{}')}catch(e){}
+function renderPlan(){
+  $('#plan').innerHTML=PLAN.map((p,i)=>`<tr class="${done[i]?'done':''}"><td class="chk"><input type="checkbox" data-i="${i}" ${done[i]?'checked':''}></td><td><b>${p[0]}</b></td><td><span class="pill ${PL[p[1]][1]}">${PL[p[1]][0]}</span></td><td>${p[2]}</td></tr>`).join('');
+  document.querySelectorAll('#plan input').forEach(c=>c.onchange=()=>{done[c.dataset.i]=c.checked;try{localStorage.setItem('mem-plan',JSON.stringify(done))}catch(e){}renderPlan()});
+  const n=Object.values(done).filter(Boolean).length;$('#prog').style.width=(n/PLAN.length*100)+'%';$('#progTxt').textContent=`Сделано ${n} из ${PLAN.length}`;
+}
+
+function renderAll(){renderIdx();renderStale();renderNoise();renderBE()}
+['rIn','bIn','dIn'].forEach(id=>$('#'+id).oninput=renderIdx);
+['hIn','tIn'].forEach(id=>$('#'+id).oninput=renderStale);
+$('#thIn').oninput=renderNoise;
+['LIn','SIn','sIn'].forEach(id=>$('#'+id).oninput=renderBE);
+renderAll();renderPlan();
+</script>
+</body>
+</html>
